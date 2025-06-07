@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Image from 'next/image';
+import { useTheme, useMediaQuery } from '@mui/material';
 
 const products = [
   {
@@ -72,6 +73,10 @@ const products = [
 ];
 
 export default function ProductsSection() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+
   const sectionRef = useRef(null);
   const containerRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -96,22 +101,18 @@ export default function ProductsSection() {
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || isMobile) return;
 
     const handleWheel = (e) => {
-      // Get the mouse position relative to the container
       const containerRect = container.getBoundingClientRect();
       const mouseY = e.clientY;
-      
-      // Check if mouse is within the card height area (360px + some padding)
       const isWithinCardArea = mouseY >= containerRect.top && mouseY <= (containerRect.top + 400);
 
-      if (!isWithinCardArea) return; // Don't handle scroll if outside card area
+      if (!isWithinCardArea) return;
 
       const maxIndex = products.length - 4;
       const delta = e.deltaY;
 
-      // Get the container's position and dimensions
       const lastCard = container.querySelector(`[data-index="${products.length - 1}"]`);
       const firstCard = container.querySelector('[data-index="0"]');
       
@@ -119,19 +120,15 @@ export default function ProductsSection() {
         const lastCardRect = lastCard.getBoundingClientRect();
         const firstCardRect = firstCard.getBoundingClientRect();
         
-        // More precise visibility checks
         const isLastCardVisible = lastCardRect.right <= (containerRect.right + 10);
         const isFirstCardVisible = firstCardRect.left >= (containerRect.left - 10);
 
-        // For scroll down
         if (delta > 0) {
           if (!isLastCardVisible) {
             e.preventDefault();
             setActiveIndex(prev => Math.min(prev + 1, maxIndex));
           }
-        }
-        // For scroll up
-        else {
+        } else {
           if (!isFirstCardVisible) {
             e.preventDefault();
             setActiveIndex(prev => Math.max(prev - 1, 0));
@@ -140,20 +137,23 @@ export default function ProductsSection() {
       }
     };
 
-    // Add wheel event listener to the window for full width coverage
     window.addEventListener('wheel', handleWheel, { passive: false });
     return () => window.removeEventListener('wheel', handleWheel);
-  }, [activeIndex]);
+  }, [activeIndex, isMobile]);
+
+  const handleDotClick = (index) => {
+    setActiveIndex(index);
+  };
 
   return (
-    <section ref={sectionRef} className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+    <section ref={sectionRef} className="py-12 md:py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
       <div className="container mx-auto px-4">
         <motion.div
           style={{ opacity, y, scale }}
-          className="text-center mb-20"
+          className="text-center mb-12 md:mb-20"
         >
           <motion.h2
-            className="text-4xl md:text-5xl font-bold text-gray-900 mb-6"
+            className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-6"
             initial={{ opacity: 0, y: -50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -167,7 +167,7 @@ export default function ProductsSection() {
             Our Products
           </motion.h2>
           <motion.p
-            className="text-lg text-gray-600 max-w-3xl mx-auto"
+            className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -190,7 +190,9 @@ export default function ProductsSection() {
           <motion.div
             className="flex gap-4"
             initial={false}
-            animate={{ x: -activeIndex * (300 + 16) }}
+            animate={{ 
+              x: isMobile ? -activeIndex * (100 + 16) : -activeIndex * (300 + 16)
+            }}
             transition={{
               type: "spring",
               stiffness: 30,
@@ -202,12 +204,14 @@ export default function ProductsSection() {
               <motion.div
                 key={product.title}
                 data-index={index}
-                className="relative bg-white w-[calc(25%-12px)] flex-shrink-0 flex flex-col transform transition-all duration-500"
+                className={`relative bg-white ${
+                  isMobile ? 'w-full' : 'w-[calc(25%-12px)]'
+                } flex-shrink-0 flex flex-col transform transition-all duration-500`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{
                   opacity: 1,
                   y: 0,
-                  scale: Math.abs(index - activeIndex) <= 2 ? 1 : 0.98,
+                  scale: isMobile ? 1 : (Math.abs(index - activeIndex) <= 2 ? 1 : 0.98),
                   x: 0
                 }}
                 transition={{
@@ -220,7 +224,7 @@ export default function ProductsSection() {
                 onHoverStart={() => setIsHovered(index)}
                 onHoverEnd={() => setIsHovered(null)}
               >
-                <div className="relative h-[360px] overflow-hidden rounded-2xl group shadow-xl hover:shadow-2xl transition-shadow duration-500">
+                <div className="relative h-[300px] md:h-[360px] overflow-hidden rounded-2xl group shadow-xl hover:shadow-2xl transition-shadow duration-500">
                   <Image
                     src={product.image}
                     alt={product.title}
@@ -234,7 +238,7 @@ export default function ProductsSection() {
                   />
                   <div className="absolute top-4 right-4">
                     <motion.span
-                      className="inline-block px-4 py-1.5 bg-blue-600 text-white rounded-full text-sm font-medium shadow-lg"
+                      className="inline-block px-3 md:px-4 py-1 md:py-1.5 bg-blue-600 text-white rounded-full text-xs md:text-sm font-medium shadow-lg"
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.1 }}
@@ -242,18 +246,18 @@ export default function ProductsSection() {
                       {product.category}
                     </motion.span>
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                     <motion.div
                       initial={{ y: 20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <h3 className="text-2xl font-bold mb-2 text-white">{product.title}</h3>
-                      <p className="text-gray-200 text-sm mb-4 line-clamp-2">{product.description}</p>
+                      <h3 className="text-xl md:text-2xl font-bold mb-2 text-white">{product.title}</h3>
+                      <p className="text-gray-200 text-xs md:text-sm mb-4 line-clamp-2">{product.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-blue-400">${product.price}</span>
+                        <span className="text-xl md:text-2xl font-bold text-blue-400">${product.price}</span>
                         <motion.button
-                          className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-lg"
+                          className="px-4 md:px-5 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg text-xs md:text-sm font-medium hover:bg-blue-700 transition-colors shadow-lg"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -267,7 +271,7 @@ export default function ProductsSection() {
                   {product.features.map((feature, i) => (
                     <motion.span
                       key={i}
-                      className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium shadow-sm"
+                      className="px-3 md:px-4 py-1.5 md:py-2 bg-blue-50 text-blue-700 rounded-lg text-xs md:text-sm font-medium shadow-sm"
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: i * 0.1 }}
@@ -279,6 +283,21 @@ export default function ProductsSection() {
               </motion.div>
             ))}
           </motion.div>
+
+          {/* Dots Navigation for Mobile */}
+          {isMobile && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              {products.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleDotClick(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    index === activeIndex ? 'bg-blue-600 w-4' : 'bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>

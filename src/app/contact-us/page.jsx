@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import ContactForm from '../../components/ContactForm';
 import ContactMap from '../../components/ContactMap';
 
-
 const CONTACTS = [
   {
     country: 'India',
@@ -22,11 +21,38 @@ const CONTACTS = [
   }
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+};
+
 export default function ContactUs() {
   return (
     <PageWrapper>
-      
-      <div className="relative h-[560px] w-full">
+      <motion.div 
+        className="relative h-[560px] w-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <Image
           src="/contact.jpg"
           alt="Contact Us"
@@ -34,21 +60,36 @@ export default function ContactUs() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-black/80" />
+        <motion.div 
+          className="absolute inset-0 bg-black/80"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        />
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-4">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
               className="max-w-3xl"
             >
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+              <motion.h1 
+                variants={itemVariants}
+                className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
+              >
                 Where to find us?
-              </h1>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-white">
-                {CONTACTS.map((contact) => (
-                  <div key={contact.country}>
+              </motion.h1>
+              <motion.div 
+                variants={containerVariants}
+                className="grid grid-cols-1 md:grid-cols-2 gap-8 text-white"
+              >
+                {CONTACTS.map((contact, index) => (
+                  <motion.div 
+                    key={contact.country}
+                    variants={itemVariants}
+                    custom={index}
+                  >
                     <h2 className="text-xl font-semibold mb-2">{contact.country}</h2>
                     <p className="text-gray-300">{contact.address}</p>
                     {contact.phoneNumber && (
@@ -57,21 +98,35 @@ export default function ContactUs() {
                     {contact.email && (
                       <p className="text-gray-300 mt-1">{contact.email}</p>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Contact Form Section */}
-      <div className="container mx-auto px-4 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
-          <ContactForm />
-          <ContactMap />
-        </div>
-      </div>
+      <motion.div 
+        className="container mx-auto px-4 py-20"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-20"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants}>
+            <ContactForm />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <ContactMap />
+          </motion.div>
+        </motion.div>
+      </motion.div>
     </PageWrapper>
   );
 } 
