@@ -1,27 +1,31 @@
 'use client';
 
+import PageWrapper from '../../components/PageWrapper';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import ContactForm from '../../components/ContactForm';
 import ContactMap from '../../components/ContactMap';
 
+
 const CONTACTS = [
   {
-    country: 'Dubai',
-    address: 'SHOP NO 10, SBK BUILDING, AL MUSALLA ROAD, 118 NAIF, DEIRA, DUBAI (UAE)',
-    phoneNumber: '+971 42980770',
+    country: 'India',
+    address: '1558, STREET NO. 29, BLOCK 39E, NAIWALA, KAROL BAGH, NEW DELHI-110005',
+    phoneNumber: '+91 89056 38483 (WhatsApp)',
+    email: 'Info@mintwellautotech.com'
   },
   {
-    country: 'India',
-    address: 'Plot-473, Udyog Vihar, Phase-lll, Sec.-20, Gurgaon, Haryana 122016',
-    phoneNumber: '01243628649',
-  },
+    country: 'Dubai',
+    address: 'DUBAI, UAE (COMING SOON)',
+    phoneNumber: '',
+    email: ''
+  }
 ];
 
-export default function ContactUsPage() {
+export default function ContactUs() {
   return (
-    <>
-      {/* Hero Section */}
+    <PageWrapper>
+      
       <div className="relative h-[560px] w-full">
         <Image
           src="/contact.jpg"
@@ -47,7 +51,12 @@ export default function ContactUsPage() {
                   <div key={contact.country}>
                     <h2 className="text-xl font-semibold mb-2">{contact.country}</h2>
                     <p className="text-gray-300">{contact.address}</p>
-                    <p className="text-gray-300 mt-1">{contact.phoneNumber}</p>
+                    {contact.phoneNumber && (
+                      <p className="text-gray-300 mt-1">{contact.phoneNumber}</p>
+                    )}
+                    {contact.email && (
+                      <p className="text-gray-300 mt-1">{contact.email}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -63,6 +72,6 @@ export default function ContactUsPage() {
           <ContactMap />
         </div>
       </div>
-    </>
+    </PageWrapper>
   );
 } 

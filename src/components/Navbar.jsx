@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { FaPhone, FaEnvelope, FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
+import LoadingSpinner from './LoadingSpinner';
+import { useLoading } from './providers/LoadingProvider';
 
 const navItems = [
   { title: 'Home', path: '/' },
@@ -15,14 +17,18 @@ const navItems = [
 ];
 
 export default function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeHover, setActiveHover] = useState(null);
   const pathname = usePathname();
+  const router = useRouter();
+  const { isLoading, setIsLoading } = useLoading();
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 40);
     };
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -30,6 +36,21 @@ export default function Navbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  // Handle loading state when pathname changes
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, setIsLoading, pathname]);
+
+  const handleNavigation = (path) => {
+    setIsLoading(true);
+    router.push(path);
+  };
 
   return (
     <>
@@ -40,11 +61,11 @@ export default function Navbar() {
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <FaPhone className="text-sm" />
-              <span>01243628649</span>
+              <span>+91 89056 38483 </span>
             </div>
             <div className="flex items-center space-x-2">
               <FaEnvelope className="text-sm" />
-              <span>info@capitalautotech.com</span>
+              <span>Info@mintwellautotech.com</span>
             </div>
           </div>
 
@@ -69,23 +90,23 @@ export default function Navbar() {
       {/* Sticky Navbar */}
       <nav
         className={`sticky top-0 left-0 w-full z-40 transition-all duration-300 font-sans ${isScrolled
-          ? 'bg-white/70 backdrop-blur-md shadow-md border-b border-white/30'
-          : 'bg-white/80 border-b border-gray-200 shadow-sm'
+            ? 'bg-white/70 backdrop-blur-md shadow-md border-b border-white/30'
+            : 'bg-white/80 border-b border-gray-200 shadow-sm'
           }`}
         style={{
           WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
           backdropFilter: isScrolled ? 'blur(16px)' : 'none',
         }}
       >
-        <div className="container mx-auto flex items-center justify-between h-14 px-4">
+        <div className="container mx-auto flex items-center justify-between h-20 px-4">
           {/* Logo */}
           <Link href="/" className="flex items-center h-full">
             <Image
               src="/logo.png"
               alt="MintWell Autotech"
-              width={340}
-              height={100}
-              className="h-28 w-auto object-contain"
+              width={200}
+              height={50}
+              className="h-16 w-auto object-contain"
               priority
             />
           </Link>
@@ -96,22 +117,20 @@ export default function Navbar() {
               <Link
                 key={item.path}
                 href={item.path}
-                className={`relative px-2 py-1 text-base font-semibold transition-colors duration-200 font-sans ${
-                  isScrolled
+                className={`relative px-2 py-1 text-base font-semibold transition-colors duration-200 font-sans ${isScrolled
                     ? pathname === item.path
                       ? 'text-primary-700'
                       : 'text-gray-900 hover:text-primary-700'
                     : pathname === item.path
-                    ? 'text-primary-700'
-                    : 'text-gray-900 hover:text-primary-700'
-                }`}
+                      ? 'text-primary-700'
+                      : 'text-gray-900 hover:text-primary-700'
+                  }`}
               >
                 {item.title}
                 {pathname === item.path && (
                   <span
-                    className={`absolute left-0 right-0 -bottom-1 h-0.5 rounded bg-current transition-all duration-200 ${
-                      isScrolled ? 'opacity-100' : 'opacity-80'
-                    }`}
+                    className={`absolute left-0 right-0 -bottom-1 h-0.5 rounded bg-current transition-all duration-200 ${isScrolled ? 'opacity-100' : 'opacity-80'
+                      }`}
                   />
                 )}
               </Link>
@@ -130,8 +149,8 @@ export default function Navbar() {
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={`inline-flex items-center justify-center p-2 rounded-md transition-colors duration-200 font-sans ${isScrolled
-                ? 'text-gray-900 hover:text-primary-700 hover:bg-white/40'
-                : 'text-gray-900 hover:text-primary-700 hover:bg-white/10'
+                  ? 'text-gray-900 hover:text-primary-700 hover:bg-white/40'
+                  : 'text-gray-900 hover:text-primary-700 hover:bg-white/10'
                 }`}
               aria-expanded={isMobileMenuOpen}
             >
@@ -156,7 +175,8 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Sidebar */}
+
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -191,11 +211,10 @@ export default function Navbar() {
                     <Link
                       key={item.path}
                       href={item.path}
-                      className={`block px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-200 font-sans ${
-                        pathname === item.path
+                      className={`block px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-200 font-sans ${pathname === item.path
                           ? 'text-primary-700 bg-primary-50'
                           : 'text-gray-900 hover:text-primary-700 hover:bg-gray-100'
-                      }`}
+                        }`}
                     >
                       {item.title}
                     </Link>

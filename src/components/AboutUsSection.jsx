@@ -1,139 +1,141 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import Button from './Button';
-import { FaTrophy, FaShip, FaTruck, FaBoxOpen } from 'react-icons/fa';
 
-const featuresLeft = [
-  {
-    icon: FaTrophy,
-    title: 'Exquisite Blend of Excellence and Massive Range',
-    desc: 'A unique blend, offering our customers a wide range of premium and dependable spare parts manufactured under stringent quality standards that comply with OE norms.',
-  },
-  {
-    icon: FaShip,
-    title: 'Comprehensive Shipping Choices',
-    desc: 'We offer comprehensive shipment solutions from all significant ports in India and Dubai, in both FCL and LCL formats.',
-  },
-];
+export default function AboutUsSection() {
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
 
-const featuresRight = [
-  {
-    icon: FaTruck,
-    title: 'Fast-Track Delivery Solutions',
-    desc: 'As a token of gratitude to our preferred distributors, the company provides 7-day expedited services in special circumstances.',
-  },
-  {
-    icon: FaBoxOpen,
-    title: 'Premium Packaging Standards',
-    desc: 'We pack our products matching International packaging standards to ensure that products are safe during transit, meet regulatory requirements, and are easy for customers to use and dispose of responsibly.',
-  },
-];
+  // Smooth transitions for content
+  const leftX = useTransform(scrollYProgress, [0, 0.5], [-100, 0]);
+  const rightX = useTransform(scrollYProgress, [0, 0.5], [100, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.2], [100, 0]);
 
-const AboutUsSection = () => {
+  // Animation variants for content
+  const contentVariants = {
+    hidden: { opacity: 0, x: -100 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const rightContentVariants = {
+    hidden: { opacity: 0, x: 100 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut"
+      }
+    }
+  };
+
   return (
-    <>
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* Content Column */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="space-y-6"
-            >
-              <h2 className="text-4xl font-bold text-gray-900">About Us</h2>
-              <div className="w-20 h-1 bg-primary"></div>
-              <p className="text-gray-600 leading-relaxed">
-                Capital Autotech Exports Pvt Ltd, is a prominent manufacturer an ISO 9001-2015 certified and a government-approved. Star Export House, we specialize in exporting high-quality Motorcycle & Three Wheeler Spare parts and Accessories based out of India.
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                With over six decades of industry experience and a global presence spanning 28 countries, we are dedicated of providing a comprehensive range of products including Engine parts, Clutch systems, Brake Parts, Gaskets, Chain sets, Control Cables, Tyres & Tubes etc. and tailored to meet the diverse requirements of automotive workshops worldwide.
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                Our unwavering commitment to quality, innovation, and customer satisfaction drives us to employ advanced technology and rigorous quality control measures throughout our production processes.
-              </p>
-              <Button variant="outline" href="/about-us">
-                More About Us
-              </Button>
-            </motion.div>
-
-            {/* Image Column */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="relative h-[500px] rounded-lg overflow-hidden shadow-xl"
-            >
-              <Image
-                src="/about-company.jpg"
-                alt="About Capital Autotech"
-                fill
-                className="object-cover"
-                priority
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* What Makes Us Unique Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-gray-900 text-center mb-4">What Makes Us Unique</h2>
-          <p className="text-center max-w-3xl mx-auto text-gray-600 mb-12">
-            Capital Autotech has been catering wide range of products in auto components industry covering giant range of spare parts for all kind of Indian and international motorcycles, scooters & three wheelers.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-            {/* Left Features */}
-            <div className="flex flex-col gap-10">
-              {featuresLeft.map((feature, idx) => (
-                <div key={idx} className="flex items-start gap-4">
-                  <span className="flex-shrink-0 w-14 h-14 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl">
-                    <feature.icon />
-                  </span>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1 leading-snug">{feature.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{feature.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* Center Image */}
-            <div className="flex flex-col items-center justify-center">
-              <div className="border-2 border-blue-500 rounded-xl p-4 bg-white shadow-md">
+    <section ref={sectionRef} className="py-8 bg-white relative overflow-hidden">
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          {/* Left Side - Side by Side Images */}
+          <motion.div
+            style={{ x: leftX, opacity }}
+            className="relative h-[500px]"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={contentVariants}
+          >
+            {/* Images Container */}
+            <div className="grid grid-cols-2 gap-4 h-full">
+              {/* First Image - Now at top */}
+              <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg -mt-8 group">
                 <Image
-                  src="/about-company.jpg"
-                  alt="What Makes Us Unique"
-                  width={300}
-                  height={220}
-                  className="object-contain rounded-lg"
+                  src="/about-us1.png"
+                  alt="About MintWell"
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-600/20 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
+              </div>
+              {/* Second Image - Now at bottom */}
+              <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg mt-8 group">
+                <Image
+                  src="/about-us2.png"
+                  alt="About MintWell"
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-600/20 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
               </div>
             </div>
-            {/* Right Features */}
-            <div className="flex flex-col gap-10">
-              {featuresRight.map((feature, idx) => (
-                <div key={idx} className="flex items-start gap-4">
-                  <span className="flex-shrink-0 w-14 h-14 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl">
-                    <feature.icon />
-                  </span>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1 leading-snug">{feature.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{feature.desc}</p>
+          </motion.div>
+
+          {/* Right Side - Content */}
+          <motion.div
+            style={{ x: rightX, opacity }}
+            className="space-y-8 h-full flex items-start -mt-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={rightContentVariants}
+          >
+            <div className="w-full">
+              <motion.h3
+                className="text-4xl font-bold text-gray-900 mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                About Us
+              </motion.h3>
+              <motion.p
+                className="text-gray-600 leading-relaxed mb-12"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                Mintwell Autotech Private Limited is a Company established with objective to cater the need of international Automobile Spare Parts market. Our leadership has the experience of more than 20 years in the industry. We deliver comprehensive range of Automobile Spare Parts for both Two Wheeler & Four Wheeler Auto brands, namely- Bajaj, TVS, Hero & Honda in 2W and Hyundai-Kai, Toyota, Mahindra & Maruti in 4W. We are also aligned with major OEM vendors namely Verroc Engineering, Uno Minda & Bosch. We are associated with some of the well-functioning distributors of the companies to fulfil order quickly.
+              </motion.p>
+
+              {/* Brand Categories */}
+              <motion.div
+                className="space-y-6"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+              >
+                {/* Two Wheelers */}
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-3">TWO WHEELERS</h4>
+                  <div className="flex flex-wrap gap-4">
+                    {['BAJAJ', 'TVS', 'HERO', 'HONDA'].map((brand, index) => (
+                      <motion.div
+                        key={brand}
+                        className="bg-white p-3 rounded-lg shadow-md"
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.8 + (index * 0.1) }}
+                      >
+                        <span className="text-gray-700 font-medium">{brand}</span>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
-};
-
-export default AboutUsSection; 
+}
