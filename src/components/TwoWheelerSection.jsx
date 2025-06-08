@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform, useSpring, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { useTheme, useMediaQuery } from '@mui/material';
@@ -9,7 +9,9 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import FactoryIcon from '@mui/icons-material/Factory';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import WhyChooseUsAnimated from './WhyChooseUsAnimated';
 
+// Memoize companies data to prevent unnecessary re-renders
 const companies = [
   {
     id: 1,
@@ -65,124 +67,98 @@ const companies = [
   }
 ];
 
+// Memoize animation variants
+const getCardAnimation = (index, isMobile, prefersReducedMotion) => {
+  return {
+    initial: { 
+      opacity: 0,
+      y: 20,
+      scale: 0.95
+    },
+    whileInView: { 
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+        mass: 0.5,
+        delay: index * 0.1
+      }
+    },
+    viewport: { once: true, margin: "-20px" },
+    whileHover: {
+      y: -5,
+      transition: { 
+        type: "spring",
+        stiffness: 400,
+        damping: 10
+      }
+    }
+  };
+};
+
+// Memoize grid animation
+const gridAnimation = {
+  initial: { opacity: 0 },
+  whileInView: { 
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1,
+      type: "spring",
+      stiffness: 50,
+      damping: 20
+    }
+  },
+  viewport: { once: true, margin: "-50px" }
+};
+
 export default function TwoWheelerSection() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const prefersReducedMotion = useReducedMotion();
   const [selectedCompany, setSelectedCompany] = useState(companies[0]);
   const sectionRef = useRef(null);
   
+  // Optimize scroll animations
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"]
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [50, -50]);
+  // Memoize scroll transforms with smoother spring
+  const y = useTransform(scrollYProgress, [0, 1], [30, -30]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.95, 1, 1, 0.95]);
+  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.98, 1, 1, 0.98]);
   const springY = useSpring(y, { 
-    stiffness: prefersReducedMotion ? 0 : 100, 
-    damping: prefersReducedMotion ? 0 : 30 
+    stiffness: prefersReducedMotion ? 0 : 30,
+    damping: prefersReducedMotion ? 0 : 15,
+    mass: 0.5
   });
 
-  // Add new animation variants for the rotating text
-  const rotatingTextVariants = {
-    initial: { y: 100, opacity: 0 },
-    animate: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    },
-    exit: {
-      y: -100,
-      opacity: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeIn"
-      }
-    }
-  };
-
-  // Add state for text rotation
+  // Memoize text rotation
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const texts = [
+  const texts = useMemo(() => [
     "Premium Two Wheeler Parts",
     "Experience excellence with our curated collection of genuine spare parts for TVS, Bajaj, Hero, and Honda vehicles"
-  ];
+  ], []);
 
-  // Add useEffect for text rotation
+  // Optimize text rotation interval
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTextIndex((prev) => (prev + 1) % texts.length);
-    }, 3000); // Change text every 3 seconds
+    }, 4000); // Increased interval
 
     return () => clearInterval(interval);
-  }, []);
+  }, [texts.length]);
 
-  const getCardAnimation = (index) => {
-    // First two cards come from left, last two from right
-    const isLeftSide = index < 2;
-    
-    return {
-      initial: { 
-        opacity: 0, 
-        x: isLeftSide ? -200 : 200, // Move from left or right
-        y: 0,
-        scale: 0.8,
-        rotate: isLeftSide ? -5 : 5, // Slight rotation based on side
-        filter: "blur(8px)"
-      },
-      animate: { 
-        opacity: 1, 
-        x: 0, 
-        y: 0, 
-        scale: 1,
-        rotate: 0,
-        filter: "blur(0px)",
-        transition: {
-          type: "spring",
-          stiffness: 70,
-          damping: 15,
-          mass: 1,
-          delay: index * 0.3, // Increased delay between cards
-          duration: 0.8
-        }
-      },
-      whileHover: {
-        scale: isMobile ? 1.02 : 1.05,
-        rotate: 0,
-        transition: { 
-          type: "spring", 
-          stiffness: prefersReducedMotion ? 0 : 400, 
-          damping: prefersReducedMotion ? 0 : 10 
-        }
-      },
-      exit: {
-        opacity: 0,
-        scale: 0.5,
-        x: isLeftSide ? -100 : 100, // Exit to the same side they came from
-        transition: {
-          duration: 0.3
-        }
-      }
-    };
-  };
-
-  // Grid animation with staggered reveal
-  const gridAnimation = {
-    initial: { opacity: 0 },
-    animate: { 
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.3, // Increased stagger time
-        delayChildren: 0.2
-      }
-    }
-  };
+  // Memoize card animations
+  const cardAnimations = useMemo(() => 
+    companies.map((_, index) => getCardAnimation(index, isMobile, prefersReducedMotion)),
+    [isMobile, prefersReducedMotion]
+  );
 
   return (
     <section 
@@ -193,265 +169,140 @@ export default function TwoWheelerSection() {
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{ 
-          opacity: useTransform(scrollYProgress, [0, 1], [0.2, 0.1]),
+          opacity: useTransform(scrollYProgress, [0, 1], [0.1, 0.05]),
           willChange: 'opacity'
         }}
       >
-        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full mix-blend-multiply filter blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full mix-blend-multiply filter blur-3xl" />
+        <div className="absolute top-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full mix-blend-multiply filter blur-2xl" />
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full mix-blend-multiply filter blur-2xl" />
       </motion.div>
 
       <div className="container mx-auto px-4 sm:px-6 relative">
-        {/* Hero Section with rotating text */}
+        {/* Hero Section with smoother animations */}
         <div className="text-center mb-12 sm:mb-16 relative h-32 sm:h-40">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTextIndex}
-              variants={rotatingTextVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 100,
+                damping: 20,
+                mass: 0.5,
+                duration: 0.5
+              }}
               className="absolute inset-0 flex flex-col items-center justify-center"
             >
               <motion.h2 
                 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4"
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.3 }}
+                style={{ willChange: 'transform' }}
               >
                 {texts[currentTextIndex]}
               </motion.h2>
-              {currentTextIndex === 0 && (
-                <motion.p 
-                  className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  Experience excellence with our curated collection of genuine spare parts for TVS, Bajaj, Hero, and Honda vehicles
-                </motion.p>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Companies Grid */}
+        {/* Redesigned Companies Grid */}
         <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16"
+          className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16"
           variants={gridAnimation}
           initial="initial"
-          animate="animate"
+          whileInView="whileInView"
         >
           {companies.map((company, index) => (
             <motion.div
               key={company.id}
-              variants={getCardAnimation(index)}
-              className={`relative bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden cursor-pointer 
+              variants={cardAnimations[index]}
+              className={`relative bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer 
                 transition-all duration-300 group ${selectedCompany.id === company.id 
                   ? 'ring-2 ring-blue-600 shadow-xl' 
-                  : 'hover:shadow-2xl hover:ring-1 hover:ring-blue-400'
+                  : 'hover:shadow-xl hover:ring-1 hover:ring-blue-400'
                 }`}
               onClick={() => setSelectedCompany(company)}
-              style={{ willChange: 'transform' }}
-              layout
+              style={{ 
+                willChange: 'transform',
+                transform: 'translateZ(0)'
+              }}
             >
               {/* Card Background Gradient */}
               <motion.div 
-                className={`absolute inset-0 bg-gradient-to-br ${company.gradient} opacity-0 group-hover:opacity-10 
+                className={`absolute inset-0 bg-gradient-to-br ${company.gradient} opacity-0 group-hover:opacity-5 
                   transition-opacity duration-500`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0 }}
-                whileHover={{ opacity: 0.1 }}
-                transition={{ duration: 0.3 }}
+                whileHover={{ opacity: 0.05 }}
               />
-              
-              {/* Logo Section with enhanced animation */}
-              <motion.div 
-                className="relative h-32 sm:h-40 w-full bg-white group-hover:bg-gray-50 transition-colors duration-300"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                layout
-              >
-                <div className="absolute inset-0 flex items-center justify-center p-4">
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.5 + (index * 0.1) }}
-                    className="relative w-full h-full"
-                  >
-                    <Image
-                      src={company.image}
-                      alt={company.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
-                      className="object-contain p-4 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
-                      priority={company.id === 1}
-                      loading={company.id === 1 ? "eager" : "lazy"}
-                    />
-                  </motion.div>
-                </div>
-              </motion.div>
 
-              {/* Content Section with enhanced animations */}
-              <motion.div 
-                className="p-4 sm:p-6 bg-white relative"
-                layout
-              >
-                <motion.h3 
-                  className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 
-                    transition-colors duration-300"
-                  whileHover={{ x: 5 }}
-                  layout
+              {/* Logo Section */}
+              <div className="relative h-24 sm:h-28 bg-gradient-to-b from-gray-50 to-white">
+                <motion.div
+                  className="absolute inset-0 flex items-center justify-center p-4"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
-                  {company.name}
-                </motion.h3>
-                <motion.p 
-                  className="text-sm sm:text-base text-gray-600 mb-3"
-                  layout
-                >
-                  {company.description}
-                </motion.p>
-                
-                {/* Stats Section with enhanced animations */}
-                <motion.div 
-                  className="grid grid-cols-3 gap-2 mb-3"
-                  layout
-                >
-                  {Object.entries(company.stats).map(([key, value], statIndex) => (
-                    <motion.div 
-                      key={key} 
-                      className="text-center p-2 bg-gray-50 rounded-lg"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.7 + (statIndex * 0.1) }}
-                      layout
-                    >
-                      <div className="text-xs text-gray-500 uppercase">{key}</div>
-                      <div className="text-sm font-semibold text-blue-600">{value}</div>
-                    </motion.div>
-                  ))}
+                  <Image
+                    src={company.image}
+                    alt={company.name}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                    className="object-contain p-4"
+                  />
                 </motion.div>
+              </div>
 
-                {/* Parts Tags with enhanced animations */}
-                <motion.div 
-                  className="flex flex-wrap gap-2"
-                  layout
-                >
-                  {company.popularParts.map((part, partIndex) => (
-                    <motion.span 
-                      key={partIndex}
-                      initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ 
-                        delay: 0.9 + (partIndex * 0.1),
-                        duration: prefersReducedMotion ? 0 : 0.3
-                      }}
-                      className="text-xs sm:text-sm bg-blue-50 text-blue-600 px-2 py-1 rounded-full
-                        group-hover:bg-blue-100 transition-colors duration-300"
-                      layout
+              {/* Card Content */}
+              <div className="p-4 bg-white">
+                <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  {company.name}
+                </h3>
+                <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                  {company.description}
+                </p>
+                
+                {/* Parts Tags */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {company.popularParts.slice(0, 2).map((part, i) => (
+                    <span 
+                      key={i}
+                      className="text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-medium
+                        group-hover:bg-blue-100 transition-colors"
                     >
                       {part}
-                    </motion.span>
+                    </span>
                   ))}
-                </motion.div>
+                </div>
 
-                {/* View More Button with enhanced animation */}
-                <motion.div 
-                  className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  whileHover={{ x: prefersReducedMotion ? 0 : 5 }}
-                  layout
-                >
-                  <ArrowForwardIcon className="text-blue-600" />
-                </motion.div>
-              </motion.div>
+                {/* Stats */}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-900">
+                      {company.stats.parts}+
+                    </span>
+                    <span className="text-xs text-gray-500">Parts</span>
+                  </div>
+                  <motion.div
+                    className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    whileHover={{ x: 2 }}
+                  >
+                    <ArrowForwardIcon className="w-5 h-5" />
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Hover Overlay */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-t from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100"
+                initial={false}
+                transition={{ duration: 0.2 }}
+              />
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Why Choose Us Section */}
-        <motion.div
-          style={{ 
-            y: springY, 
-            opacity, 
-            scale,
-            willChange: 'transform, opacity'
-          }}
-          className="bg-white rounded-xl shadow-lg p-6 sm:p-8 relative overflow-hidden"
-        >
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500" />
-            <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-50" />
-          </div>
-
-          <div className="relative">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center">
-              Why Choose MintWell?
-            </h2>
-            <p className="text-sm sm:text-base text-gray-600 text-center mb-6">
-              We specialize in providing high-quality spare parts for TVS, Bajaj, Hero, and Honda vehicles.
-              All parts are inspected for quality and durability, with export-grade packaging available.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {[
-                {
-                  icon: <CheckCircleOutlineIcon className="text-3xl sm:text-4xl text-blue-600" />,
-                  title: "Quality Assured",
-                  description: "Rigorous quality checks on every part"
-                },
-                {
-                  icon: <FactoryIcon className="text-3xl sm:text-4xl text-blue-600" />,
-                  title: "OEM Standards",
-                  description: "Meeting original equipment standards"
-                },
-                {
-                  icon: <LocalShippingIcon className="text-3xl sm:text-4xl text-blue-600" />,
-                  title: "Export Ready",
-                  description: "International shipping available"
-                },
-                {
-                  icon: <SupportAgentIcon className="text-3xl sm:text-4xl text-blue-600" />,
-                  title: "24/7 Support",
-                  description: "Round the clock customer service"
-                }
-              ].map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.5,
-                    delay: index * 0.1,
-                    type: prefersReducedMotion ? "tween" : "spring"
-                  }}
-                  whileHover={{
-                    scale: prefersReducedMotion ? 1 : 1.05,
-                    transition: {
-                      type: "spring",
-                      stiffness: prefersReducedMotion ? 0 : 400,
-                      damping: prefersReducedMotion ? 0 : 10
-                    }
-                  }}
-                  className="text-center p-4 rounded-lg hover:bg-gray-50 transition-all duration-300
-                    border border-transparent hover:border-blue-100"
-                  style={{ willChange: 'transform' }}
-                >
-                  <motion.div
-                    className="mb-3 inline-block"
-                    whileHover={{
-                      rotate: prefersReducedMotion ? 0 : 360,
-                      transition: { duration: 0.5 }
-                    }}
-                  >
-                    {feature.icon}
-                  </motion.div>
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-xs text-gray-600">{feature.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
+        
       </div>
     </section>
   );

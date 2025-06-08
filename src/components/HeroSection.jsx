@@ -22,18 +22,19 @@ export default function HeroSection({ isLoading, setIsLoading }) {
     offset: ["start start", "end start"]
   });
 
-  // Create smooth spring animations for scroll effects
+  // Enhanced scroll animations with smoother spring
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,  // Reduced stiffness
-    damping: 30,     // Increased damping
-    mass: 1,         // Increased mass
+    stiffness: 50,
+    damping: 20,
+    mass: 0.5,
     restDelta: 0.001
   });
 
-  // Transform scroll progress to opacity with adjusted values
-  const opacity = useTransform(smoothProgress, [0, 0.5], [1, 0]);  // Changed from [0, 0.2] to [0, 0.5]
-  const scale = useTransform(smoothProgress, [0, 0.5], [1, 0.98]);  // Changed from [0, 0.2] to [0, 0.5]
-  const y = useTransform(smoothProgress, [0, 0.5], [0, -20]);      // Changed from [0, 0.2] to [0, 0.5]
+  // Enhanced transform values
+  const opacity = useTransform(smoothProgress, [0, 0.5], [1, 0]);
+  const scale = useTransform(smoothProgress, [0, 0.5], [1, 0.95]);
+  const y = useTransform(smoothProgress, [0, 0.5], [0, -30]);
+  const rotate = useTransform(smoothProgress, [0, 0.5], [0, 2]);
 
   // Auto-advance carousel every 5 seconds
   useEffect(() => {
@@ -90,10 +91,11 @@ export default function HeroSection({ isLoading, setIsLoading }) {
         opacity,
         scale,
         y,
+        rotate
       }}
       className="relative h-[calc(100vh-80px)] w-full mt-0"
     >
-      {/* Carousel Images */}
+      {/* Enhanced Carousel Images */}
       <div className="absolute inset-0 overflow-hidden">
         <AnimatePresence initial={false} custom={direction} mode="sync">
           <motion.div
@@ -106,9 +108,9 @@ export default function HeroSection({ isLoading, setIsLoading }) {
             transition={{
               x: { 
                 type: "spring",
-                stiffness: 200,
-                damping: 25,
-                mass: 1,
+                stiffness: 100,
+                damping: 20,
+                mass: 0.5,
                 duration: 0.8
               },
               opacity: { 
@@ -121,15 +123,15 @@ export default function HeroSection({ isLoading, setIsLoading }) {
               src={images[current]}
               alt={`Hero Slide ${current + 1}`}
               fill
-              className="object-cover transition-transform duration-700"
+              className="object-cover transition-transform duration-700 hover:scale-105"
               priority
             />
-            <div className="absolute inset-0 bg-black/50 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 transition-opacity duration-500" />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Content */}
+      {/* Enhanced Content */}
       <div className="relative h-full flex items-center">
         <div className="container mx-auto px-4 mt-0">
           <div className="max-w-3xl">
@@ -140,9 +142,13 @@ export default function HeroSection({ isLoading, setIsLoading }) {
                 duration: 0.8,
                 ease: "easeOut"
               }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
             >
-              PERFECT COMBINATION OF QUALITY & VARIETY
+              <span className="inline-block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                PERFECT COMBINATION
+              </span>
+              <br />
+              <span className="text-white">OF QUALITY & VARIETY</span>
             </motion.h1>
 
             <motion.p
@@ -153,7 +159,7 @@ export default function HeroSection({ isLoading, setIsLoading }) {
                 delay: 0.2,
                 ease: "easeOut"
               }}
-              className="text-lg md:text-xl text-white/90 mb-8"
+              className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed"
             >
               50 Years of Trusted Quality, Driving Reliability Forward.
             </motion.p>
@@ -170,13 +176,19 @@ export default function HeroSection({ isLoading, setIsLoading }) {
             >
               <Link
                 href="/catalogues"
-                className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-all duration-300 ease-in-out"
+                className="group inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl"
               >
-                View Catalogues
+                <span className="mr-2">View Catalogues</span>
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  →
+                </motion.span>
               </Link>
               <Link
                 href="/contact-us"
-                className="inline-flex items-center justify-center px-8 py-3 border-2 border-white text-base font-medium rounded-md text-white hover:bg-white hover:text-primary-600 transition-all duration-300 ease-in-out"
+                className="group inline-flex items-center justify-center px-8 py-3 border-2 border-white text-base font-medium rounded-lg text-white hover:bg-white hover:text-primary-600 transition-all duration-300 ease-in-out backdrop-blur-sm"
               >
                 Contact Us
               </Link>
@@ -185,10 +197,10 @@ export default function HeroSection({ isLoading, setIsLoading }) {
         </div>
       </div>
 
-      {/* Carousel Dots */}
+      {/* Enhanced Carousel Dots */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-10">
         {images.map((_, idx) => (
-          <button
+          <motion.button
             key={idx}
             onClick={() => handleDotClick(idx)}
             className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ease-in-out focus:outline-none ${
@@ -196,9 +208,25 @@ export default function HeroSection({ isLoading, setIsLoading }) {
                 ? 'bg-white border-white scale-125 shadow-lg'
                 : 'bg-white/40 border-white/60'
             }`}
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.9 }}
           />
         ))}
       </div>
+
+      {/* Scroll Indicator */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-6 h-10 border-2 border-white/30 rounded-full flex justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+      >
+        <motion.div
+          className="w-1 h-2 bg-white rounded-full mt-2"
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        />
+      </motion.div>
     </motion.div>
   );
 } 

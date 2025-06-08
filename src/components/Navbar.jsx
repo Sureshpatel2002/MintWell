@@ -10,23 +10,38 @@ import LoadingSpinner from './LoadingSpinner';
 import { useLoading } from './providers/LoadingProvider';
 
 const navItems = [
-  { title: 'Home', path: '/' },
-  { title: 'About Us', path: '/about-us' },
-  { title: 'Two-Wheeler', path: '/two-wheeler' },
-  { title: 'Contact Us', path: '/contact-us' },
+  { title: 'Home', path: '#home' },
+  { title: 'About Us', path: '#about' },
+  { title: 'Two Wheeler', path: '#two-wheeler' },
+  { title: 'Contact Us', path: '#contact' },
 ];
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeHover, setActiveHover] = useState(null);
+  const [activeSection, setActiveSection] = useState('home');
   const pathname = usePathname();
   const router = useRouter();
   const { isLoading, setIsLoading } = useLoading();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      setIsScrolled(window.scrollY > 20);
+
+      // Update active section based on scroll position
+      const sections = ['home', 'about', 'two-wheeler', 'contact'];
+      const scrollPosition = window.scrollY + 100; // Offset for better detection
+
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -47,9 +62,19 @@ export default function Navbar() {
     }
   }, [isLoading, setIsLoading, pathname]);
 
-  const handleNavigation = (path) => {
-    setIsLoading(true);
-    router.push(path);
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80; // Adjust based on your navbar height
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -114,26 +139,20 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center space-x-8 h-full">
             {navItems.map((item) => (
-              <Link
+              <button
                 key={item.path}
-                href={item.path}
-                className={`relative px-3 py-2 text-lg font-semibold transition-colors duration-200 font-sans ${isScrolled
-                    ? pathname === item.path
-                      ? 'text-primary-700'
-                      : 'text-gray-900 hover:text-primary-700'
-                    : pathname === item.path
-                      ? 'text-primary-700'
-                      : 'text-gray-900 hover:text-primary-700'
-                  }`}
+                onClick={() => scrollToSection(item.path.replace('#', ''))}
+                className={`relative px-3 py-2 text-lg font-semibold transition-colors duration-200 font-sans ${
+                  activeSection === item.path.replace('#', '')
+                    ? 'text-primary-700'
+                    : 'text-gray-900 hover:text-primary-700'
+                }`}
               >
                 {item.title}
-                {pathname === item.path && (
-                  <span
-                    className={`absolute left-0 right-0 -bottom-1 h-0.5 rounded bg-current transition-all duration-200 ${isScrolled ? 'opacity-100' : 'opacity-80'
-                      }`}
-                  />
+                {activeSection === item.path.replace('#', '') && (
+                  <span className="absolute left-0 right-0 -bottom-1 h-0.5 rounded bg-current transition-all duration-200" />
                 )}
-              </Link>
+              </button>
             ))}
             <button
               disabled
@@ -175,7 +194,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-
       {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -208,16 +226,17 @@ export default function Navbar() {
                 </div>
                 <nav className="flex-1 px-6 py-6 space-y-2">
                   {navItems.map((item) => (
-                    <Link
+                    <button
                       key={item.path}
-                      href={item.path}
-                      className={`block px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-200 font-sans ${pathname === item.path
-                          ? 'text-primary-700 bg-primary-50'
-                          : 'text-gray-900 hover:text-primary-700 hover:bg-gray-100'
-                        }`}
+                      onClick={() => scrollToSection(item.path.replace('#', ''))}
+                      className={`w-full text-left px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-200 font-sans ${
+                        activeSection === item.path.replace('#', '')
+                          ? 'bg-primary-50 text-primary-700'
+                          : 'text-gray-900 hover:bg-gray-100 hover:text-primary-700'
+                      }`}
                     >
                       {item.title}
-                    </Link>
+                    </button>
                   ))}
                   <button
                     disabled
